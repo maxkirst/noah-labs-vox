@@ -1,0 +1,256 @@
+"use client"
+
+import * as React from "react"
+import { Renderer, Program, Mesh, Triangle, Vec3 } from "ogl"
+import type { OGLRenderingContext } from "ogl"
+import { useReducedMotion } from "motion/react"
+
+import { cn } from "@/lib/utils"
+
+export interface AmbientOrbProps {
+  className?: string
+  /** Grundrotation in Radiant pro Sekunde. */
+  rotationSpeed?: number
+}
+
+/**
+ * Abstrakter, sich sanft drehender Farb-Orb auf rohem WebGL-Canvas (ogl).
+ *
+ * Portiert von einer "Voice Powered Orb"-Vorlage, aber bewusst ohne
+ * Mikrofonzugriff entfernt: das Briefing verbietet Sprachaufnahme/
+ * Mikrofonabfrage im Browser ausdrücklich (Datenschutz, Vertrauen der
+ * Kampagne). Die Bewegung läuft rein zeitbasiert/ambient statt
+ * stimmreaktiv. Palette auf Noah Labs Grün/Sage/Taupe-Gold umgestellt
+ * (Original nutzte Lila/Cyan). Transparenter Canvas – nur der leuchtende
+ * Kreis ist sichtbar, kein umgebendes Farbfeld/Kachel im Hintergrund –, und
+ * ohne die ursprüngliche Hover-UV-Verzerrung – nur ruhige Rotation plus
+ * organisches Rauschen. Respektiert
+ * `prefers-reduced-motion`: ein statischer Frame statt Endlosschleife.
+ */
+export function AmbientOrb({ className, rotationSpeed = 0.18 }: AmbientOrbProps) {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const shouldReduceMotion = useReducedMotion()
+
+  const vert = /* glsl */ `
+    precision highp float;
+    attribute vec2 position;
+    attribute vec2 uv;
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position, 0.0, 1.0);
+    }
+  `
+
+  const frag = /* glsl */ `
+    precision highp float;
+
+    uniform float iTime;
+    uniform vec3 iResolution;
+    uniform float rot;
+    varying vec2 vUv;
+
+    /* Noah Labs Markenfarben statt Lila/Cyan: sage-300, taupe-gold, green-900. */
+    const vec3 baseColor1 = vec3(0.678, 0.780, 0.761);
+    const vec3 baseColor2 = vec3(0.584, 0.400, 0.318);
+    const vec3 baseColor3 = vec3(0.012, 0.271, 0.216);
+    const float innerRadius = 0.6;
+    const float noiseScale = 0.65;
+
+    vec3 hash33(vec3 p3) {
+      p3 = fract(p3 * vec3(0.1031, 0.11369, 0.13787));
+      p3 += dot(p3, p3.yxz + 19.19);
+      return -1.0 + 2.0 * fract(vec3(
+        p3.x + p3.y,
+        p3.x + p3.z,
+        p3.y + p3.z
+      ) * p3.zyx);
+    }
+
+    float snoise3(vec3 p) {
+      const float K1 = 0.333333333;
+      const float K2 = 0.166666667;
+      vec3 i = floor(p + (p.x + p.y + p.z) * K1);
+      vec3 d0 = p - (i - (i.x + i.y + i.z) * K2);
+      vec3 e = step(vec3(0.0), d0 - d0.yzx);
+      vec3 i1 = e * (1.0 - e.zxy);
+      vec3 i2 = 1.0 - e.zxy * (1.0 - e);
+      vec3 d1 = d0 - (i1 - K2);
+      vec3 d2 = d0 - (i2 - K1);
+      vec3 d3 = d0 - 0.5;
+      vec4 h = max(0.6 - vec4(
+        dot(d0, d0),
+        dot(d1, d1),
+        dot(d2, d2),
+        dot(d3, d3)
+      ), 0.0);
+      vec4 n = h * h * h * h * vec4(
+        dot(d0, hash33(i)),
+        dot(d1, hash33(i + i1)),
+        dot(d2, hash33(i + i2)),
+        dot(d3, hash33(i + 1.0))
+      );
+      return dot(vec4(31.316), n);
+    }
+
+    float light1(float intensity, float attenuation, float dist) {
+      return intensity / (1.0 + dist * attenuation);
+    }
+
+    float light2(float intensity, float attenuation, float dist) {
+      return intensity / (1.0 + dist * dist * attenuation);
+    }
+
+    vec4 extractAlpha(vec3 colorIn) {
+      float a = max(max(colorIn.r, colorIn.g), colorIn.b);
+      return vec4(colorIn.rgb / (a + 1e-5), a);
+    }
+
+    vec4 draw(vec2 uv) {
+      float ang = atan(uv.y, uv.x);
+      float len = length(uv);
+      float invLen = len > 0.0 ? 1.0 / len : 0.0;
+
+      float n0 = snoise3(vec3(uv * noiseScale, iTime * 0.5)) * 0.5 + 0.5;
+      float r0 = mix(mix(innerRadius, 1.0, 0.4), mix(innerRadius, 1.0, 0.6), n0);
+      float d0 = distance(uv, (r0 * invLen) * uv);
+      float v0 = light1(1.0, 10.0, d0);
+      v0 *= smoothstep(r0 * 1.05, r0, len);
+      float cl = cos(ang + iTime * 2.0) * 0.5 + 0.5;
+
+      float a = iTime * -1.0;
+      vec2 pos = vec2(cos(a), sin(a)) * r0;
+      float d = distance(uv, pos);
+      float v1 = light2(1.5, 5.0, d);
+      v1 *= light1(1.0, 50.0, d0);
+
+      float v2 = smoothstep(1.0, mix(innerRadius, 1.0, n0 * 0.5), len);
+      float v3 = smoothstep(innerRadius, mix(innerRadius, 1.0, 0.5), len);
+
+      vec3 col = mix(baseColor1, baseColor2, cl);
+      col = mix(baseColor3, col, v0);
+      col = (col + v1) * v2 * v3;
+      col = clamp(col, 0.0, 1.0);
+
+      return extractAlpha(col);
+    }
+
+    vec4 mainImage(vec2 fragCoord) {
+      vec2 center = iResolution.xy * 0.5;
+      float size = min(iResolution.x, iResolution.y);
+      vec2 uv = (fragCoord - center) / size * 2.0;
+
+      float angle = rot;
+      float s = sin(angle);
+      float c = cos(angle);
+      uv = vec2(c * uv.x - s * uv.y, s * uv.x + c * uv.y);
+
+      return draw(uv);
+    }
+
+    void main() {
+      vec2 fragCoord = vUv * iResolution.xy;
+      vec4 col = mainImage(fragCoord);
+      gl_FragColor = vec4(col.rgb * col.a, col.a);
+    }
+  `
+
+  React.useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    let renderer: Renderer | null = null
+    let gl: OGLRenderingContext | null = null
+    let rafId = 0
+    let program: Program | null = null
+
+    try {
+      renderer = new Renderer({
+        alpha: true,
+        premultipliedAlpha: false,
+        antialias: true,
+        dpr: window.devicePixelRatio || 1,
+      })
+      gl = renderer.gl
+      gl.clearColor(0, 0, 0, 0)
+      gl.enable(gl.BLEND)
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+      while (container.firstChild) container.removeChild(container.firstChild)
+      container.appendChild(gl.canvas)
+
+      const geometry = new Triangle(gl)
+      program = new Program(gl, {
+        vertex: vert,
+        fragment: frag,
+        uniforms: {
+          iTime: { value: 0 },
+          iResolution: {
+            value: new Vec3(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height),
+          },
+          rot: { value: 0 },
+        },
+      })
+
+      const mesh = new Mesh(gl, { geometry, program })
+
+      const resize = () => {
+        if (!container || !renderer || !gl) return
+        const dpr = window.devicePixelRatio || 1
+        const width = container.clientWidth
+        const height = container.clientHeight
+        if (width === 0 || height === 0) return
+
+        renderer.setSize(width * dpr, height * dpr)
+        gl.canvas.style.width = width + "px"
+        gl.canvas.style.height = height + "px"
+
+        program?.uniforms.iResolution.value.set(
+          gl.canvas.width,
+          gl.canvas.height,
+          gl.canvas.width / gl.canvas.height,
+        )
+      }
+      window.addEventListener("resize", resize)
+      resize()
+
+      let lastTime = 0
+      let currentRot = 0
+
+      const frame = (t: number) => {
+        if (!program || !renderer || !gl) return
+
+        const dt = lastTime ? (t - lastTime) * 0.001 : 0
+        lastTime = t
+        program.uniforms.iTime.value = t * 0.001
+
+        currentRot += dt * rotationSpeed
+        program.uniforms.rot.value = currentRot
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+        renderer.render({ scene: mesh })
+
+        // Reduced motion: ein statischer Frame, keine Endlosschleife.
+        if (!shouldReduceMotion) {
+          rafId = requestAnimationFrame(frame)
+        }
+      }
+      rafId = requestAnimationFrame(frame)
+
+      return () => {
+        cancelAnimationFrame(rafId)
+        window.removeEventListener("resize", resize)
+        if (container && gl?.canvas && container.contains(gl.canvas)) {
+          container.removeChild(gl.canvas)
+        }
+        gl?.getExtension("WEBGL_lose_context")?.loseContext()
+      }
+    } catch (error) {
+      console.error("Error initializing AmbientOrb:", error)
+    }
+  }, [rotationSpeed, shouldReduceMotion, vert, frag])
+
+  return <div ref={containerRef} className={cn("relative h-full w-full", className)} />
+}
+
+export default AmbientOrb

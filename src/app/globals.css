@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --color-nl-green-900: #034537;
+  --color-nl-green-800: #024d3f;
+  --color-nl-sage-600: #648f86;
+  --color-nl-sage-300: #adc7c2;
+  --color-nl-surface: #f5f8f7;
+  --color-nl-ink: #111729;
+  --color-nl-muted: #696969;
+  --color-nl-taupe-700: #956651;
+  --color-nl-taupe-200: #ecd6ca;
+  --color-nl-pink: #ed8296;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-lora), Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  background: var(--color-nl-surface);
+  color: var(--color-nl-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-nl-sage-300);
+  color: var(--color-nl-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-nl-green-900);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
