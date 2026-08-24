@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.next/
+node_modules/
+out/
+coverage/
+.vercel/
+*.log
+
+# Next.js / TypeScript build artefacts
+*.tsbuildinfo
+next-env.d.ts
+/build
+.pnp.*
