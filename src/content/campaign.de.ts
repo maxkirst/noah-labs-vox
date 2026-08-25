@@ -9,7 +9,7 @@
  */
 
 export const siteMeta = {
-  title: "Noah Labs Vox Studie | Mit Ihrer Stimme die Herzforschung unterstützen",
+  title: "Noah Labs Vox Studie",
   description:
     "Erfahren Sie, wie Sie mit einer täglichen Sprachaufnahme die Noah Labs Vox Forschung unterstützen und bis zu 150 Euro pro Jahr erhalten können.",
   locale: "de-DE",

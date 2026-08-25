@@ -45,14 +45,14 @@ export function HeroSection() {
           </motion.p>
           <motion.h1
             variants={staggerContainer(0.15, 0)}
-            className="mx-auto mt-5 font-sans text-[clamp(2.5rem,5.5vw,6rem)] font-bold leading-[1.05] tracking-tight text-nl-ink"
+            className="mx-auto mt-5 font-sans text-[clamp(2.5rem,5.5vw,6rem)] font-bold leading-[1.15] tracking-tight text-nl-ink"
           >
-            <span className="block overflow-hidden">
+            <span className="-mb-2 block overflow-hidden pb-2">
               <motion.span variants={headlineLineVariant} className="block text-balance">
                 {headlineLine1}
               </motion.span>
             </span>
-            <span className="block overflow-hidden">
+            <span className="-mb-2 block overflow-hidden pb-2">
               <motion.span variants={headlineLineVariant} className="block text-balance">
                 {headlineLine2}
               </motion.span>
