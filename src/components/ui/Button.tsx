@@ -23,7 +23,18 @@ const variants = {
  */
 export function Button({ href, children, variant = "primary", className = "", ...rest }: ButtonProps) {
   const isExternal = /^https?:\/\//.test(href);
+  const isHashLink = href.startsWith("#");
   const externalProps = isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {};
+
+  // Next.js `Link` verschluckt reine Same-Page-Hash-Links (kein Scroll beim
+  // Klick, siehe #ablauf auf dieser Seite). Für Anker deshalb natives `<a>`.
+  if (isHashLink) {
+    return (
+      <a href={href} className={`${base} ${variants[variant]} ${className}`} {...rest}>
+        {children}
+      </a>
+    );
+  }
 
   return (
     <Link href={href} className={`${base} ${variants[variant]} ${className}`} {...externalProps} {...rest}>

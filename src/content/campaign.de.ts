@@ -9,7 +9,7 @@
  */
 
 export const siteMeta = {
-  title: "Noah Labs Vox Studie",
+  title: "Noah Labs Vox",
   description:
     "Erfahren Sie, wie Sie mit einer täglichen Sprachaufnahme die Noah Labs Vox Forschung unterstützen und bis zu 150 Euro pro Jahr erhalten können.",
   locale: "de-DE",
@@ -23,26 +23,26 @@ export const nav = {
     { label: "Dankeschön", href: "#dankeschoen" },
     { label: "Freiwillig & sicher", href: "#sicherheit" },
   ],
-  cta: { label: "Jetzt teilnehmen", href: "https://forms.gle/HfEQuLjo4hU3BTW6A" },
+  cta: { label: "Jetzt teilnehmen", href: "https://g47y4.share-eu1.hsforms.com/2KsujpCaaQJ6_AEH-zVj6Xw" },
   menuOpenLabel: "Menü öffnen",
   menuCloseLabel: "Menü schließen",
 } as const;
 
 export const hero = {
-  eyebrow: "Noah Labs Vox Studie",
+  eyebrow: "Noah Labs Vox",
   headline: "Ihre Stimme bewegt Herzforschung.",
   subline:
     "Mit einer kurzen täglichen Sprachaufnahme unterstützen Sie die Forschung und erhalten bis zu 150 Euro pro Jahr.",
-  primaryCta: { label: "Jetzt teilnehmen", href: "https://forms.gle/HfEQuLjo4hU3BTW6A" },
+  primaryCta: { label: "Jetzt teilnehmen", href: "https://g47y4.share-eu1.hsforms.com/2KsujpCaaQJ6_AEH-zVj6Xw" },
   secondaryLink: { label: "So funktioniert es", href: "#ablauf" },
 } as const;
 
 export const whyVoice = {
   id: "warum-die-stimme",
   heading: "Herzgesundheit kann hörbar werden.",
-  body: "Neben Gewicht, Blutdruck und EKG erforscht Noah Labs die Stimme als zusätzliches Anzeichen. Die Technologie untersucht kleine Veränderungen, zum Beispiel Tonhöhe, Atemfrequenz und wie stabil die Stimme klingt.",
+  body: "Noah Labs entwickelt digitale Lösungen, die Menschen mit Herzinsuffizienz im Alltag unterstützen. Ein besonders spannender Ansatz dabei ist die eigene Stimme: Wir untersuchen, ob sich in ihr schon früh zeigt, wenn sich die Herzinsuffizienz verschlechtert – oft bevor man selbst etwas spürt. Dafür schauen wir uns kleine Veränderungen an, zum Beispiel die Tonhöhe, die Atmung oder wie klar und stabil die Stimme klingt.",
   addendum:
-    "Das Forschungsziel ist, eine Verschlechterung der Herzinsuffizienz früher zu erkennen, damit rechtzeitig gehandelt und ein Klinikaufenthalt möglichst verhindert werden kann.",
+    "Unser Ziel ist, solche Verschlechterungen so früh zu erkennen, dass rechtzeitig gehandelt werden kann – im besten Fall, bevor überhaupt ein Klinikaufenthalt nötig wird.",
   signalLayers: [
     {
       key: "tonhoehe",
@@ -131,7 +131,6 @@ export const safety = {
   heading: "Absolut freiwillig und sicher.",
   statements: [
     "Die Teilnahme an der Studie zur Stimme ist komplett freiwillig.",
-    "Ihre Entscheidung hat keinen Einfluss auf Ihre normale medizinische Betreuung.",
     "Ihre Daten bleiben streng vertraulich.",
     "Die Daten werden ausschließlich für medizinische Forschungszwecke genutzt.",
     "Die Aufwandsentschädigung ist ein Dankeschön für Ihren Beitrag.",
